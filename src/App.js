@@ -46,7 +46,8 @@ export default function App (){
         name: getUserName(),
         text: messageText,
         profilePicUrl: getProfileUrl(),
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        user: user
       });
     }
     catch(error) {

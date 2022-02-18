@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, limit } from "firebase/firestore"
+
 export default function Home(props) {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
-    
+    const scroll = useRef();
+
     function loadMessages() {
         // Queries the firestore database for the last 12 messages saved
-        const recentMessageQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'), limit(12));
+        const recentMessageQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
         setLoading(true);
         
         // Grabs a snapshot of the current database and listens for changes
@@ -17,6 +19,7 @@ export default function Home(props) {
             querySnapshot.forEach((doc) => {
                 messages.push(doc);
             }); 
+            setTimeout(() => {scroll.current.scrollIntoView({block: 'end', behavior: 'smooth'})}, 0);
             setMessages(messages);
             setLoading(false);
         });
@@ -31,39 +34,47 @@ export default function Home(props) {
         loadMessages();
       }, [])
 
-    function handleSubmit(e) {
-        e.preventDefault();
-        props.saveMessage(e.target.message.value);
-        e.target.message.value = null;
-    }
-
     if (loading) {
         return <h1>Loading...</h1>;
     }
-    
+
     return (
-        <>
+        <div className='vh-100'> 
             <header>
                 <button className="btn btn-secondary position-absolute end-0" onClick={() => props.signOut()}>Sign Out</button>
             </header>
-            <div className="card w-100">
+            <div className="card vh-100 w-100 scrollbar">
                 <div className="card-body">
-                    <div className="messages">
+                    <div className="messages p-2">
                         { messages.map((msg) => 
-                            <div className='message-container border border-secondary rounded p-2 mb-1' key={msg.id}>
-                                <div className='name'>{msg.data().name}</div>
-                                <div className='message'>{msg.data().text}</div>
+                            <div className='message-container p-2 mb-1' key={msg.id}>
+                                <div className='d-flex align-items-center'>
+                                    <img src={msg.data().profilePicUrl} className='profilePic rounded-circle'></img>
+                                    <div className='name ms-2'>
+                                        {msg.data().name} 
+                                            <span className='date fst-italic ms-2'>
+                                                {msg.data().timestamp ? msg.data().timestamp.toDate().toDateString() : Date.now()}
+                                            </span>
+                                        </div>
+                                </div>
+                                <div className='text'>{msg.data().text}</div>
                             </div>
                         )}
+                            <div className='text-div position-fixed bottom-0 translate-middle-y'>
+                                <input type='text' className='msg-txt h-100 w-100 border border-secondary rounded-pill text-white p-2' name='message' placeholder="     Message" 
+                                onKeyPress={(e) => {
+                                        if(e.key === 'Enter') {
+                                            e.preventDefault();
+                                            props.saveMessage(e.target.value);
+                                            console.log(e.target.value);
+                                            e.target.value = null;
+                                        }
+                                    }}/>
+                            </div>
                     </div>
                 </div>
+                <span ref={scroll} className='bottom-span'></span>
             </div>
-            <form onSubmit={handleSubmit}>
-                <fieldset className='d-flex justify-content-center'>
-                    <input type='text' className='h-100 w-100' name='message'/>
-                    <input type='submit' className='btn btn-primary btn-sm'/>
-                </fieldset>
-            </form>
-        </>
+        </div>
     )
 }

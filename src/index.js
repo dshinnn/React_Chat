@@ -7,7 +7,7 @@ import {BrowserRouter as Router} from 'react-router-dom';
 ReactDOM.render(
   <React.StrictMode>
     <Router>
-      <div className='container'>
+      <div className='container vh-100'>
         <App />
       </div>
     </Router>
