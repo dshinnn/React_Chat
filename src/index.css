@@ -35,8 +35,8 @@ code {
 }
 
 .profilePic {
-  height: 35px;
-  width: 35px;
+  height: 40px;
+  width: 40px;
 }
 
 .date {
@@ -44,8 +44,9 @@ code {
   color: rgb(255, 240, 240);
 }
 
-.text {
+.message {
   padding: 5px;
+  margin-left: 20px;
 }
 
 .card {
@@ -71,3 +72,7 @@ code {
   width: 75%;
   left: 11%;
 }
+
+/* .text {
+  margin-left: 55px;
+} */

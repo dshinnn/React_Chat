@@ -11,13 +11,17 @@ import Home from './views/Home';
 // TODO: Try using https://blog.logrocket.com/how-to-use-react-hooks-firebase-firestore/ to get loadMessages and displayMessages working
 export default function App (){
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [userId, setUserId] = useState(null);
+  const [profilePic, setProfilePic] = useState(null);
+  const [userName, setUserName] = useState(null);
   
   //  Signs in user
   let logIn = async () => {
     var provider = new GoogleAuthProvider();
     await signInWithPopup(getAuth(), provider);
-    setUser(getAuth().currentUser.uid);
+    setUserId(getAuth().currentUser.uid);
+    setProfilePic(getProfileUrl());
+    setUserName(getUserName());
     navigate('/chat');
   }
 
@@ -35,7 +39,7 @@ export default function App (){
 
   // Gets profile picture from logged in user
   let getProfileUrl = () => {
-    return getAuth().currentUser.photoURL || '/images/profile_placeholder.png';
+    return getAuth().currentUser.photoURL || './images/profile_placeholder.png';
   }
 
   // Saves message to firestore database
@@ -47,7 +51,7 @@ export default function App (){
         text: messageText,
         profilePicUrl: getProfileUrl(),
         timestamp: serverTimestamp(),
-        user: user
+        user: userId
       });
     }
     catch(error) {
@@ -57,9 +61,9 @@ export default function App (){
 
   return (
     <>
-      {/* <Navbar loggedIn={ loggedIn } signOut={ logOut }/> */}
+      {/* <Navbar loggedIn={ user } signOut={ logOut }/> */}
         <Routes>
-          <Route path='chat' element={ <Home saveMessage={ saveMessage } user={ user } signOut={ logOut }/> } />
+          <Route path='chat' element={ <Home saveMessage={ saveMessage } user={ userId } signOut={ logOut } userName={ userName } userImg={ profilePic } /> } />
           <Route path='/' element={ <Login signIn={ logIn }/>}/>
         </Routes>
     </>
