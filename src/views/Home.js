@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, limit } from "firebase/firestore"
+import { getFirestore, collection, query, onSnapshot, orderBy, doc, deleteDoc, getDoc, where } from "firebase/firestore"
 
 export default function Home(props) {
     const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const scroll = useRef();
-
+    const db = getFirestore();
+    const messagesRef = collection(db, 'messages');
     function loadMessages() {
         // Queries the firestore database for the last 12 messages saved
-        const recentMessageQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
+        const recentMessageQuery = query(messagesRef, orderBy('timestamp', 'asc'));
         setLoading(true);
         
         // Grabs a snapshot of the current database and listens for changes
@@ -23,6 +24,11 @@ export default function Home(props) {
             setMessages(messages);
             setLoading(false);
         });
+    }
+
+    async function deleteMessage(messageId) {
+        console.log(messageId);
+        await deleteDoc(doc(db, 'messages', messageId));
     }
 
     useEffect(() => {
@@ -55,6 +61,9 @@ export default function Home(props) {
                                             <span className='date fst-italic ms-2'>
                                                 {msg.data().timestamp ? msg.data().timestamp.toDate().toDateString() : Date.now()}
                                             </span>
+                                            { props.user === msg.data().user ? (
+                                                <button className='btn-sm btn-light position-absolute end-0 me-2' onClick={() => {deleteMessage(msg.id)} }>X</button>) : null}
+                                            
                                         </div>
                                 </div>
                                 <div className='text'>{msg.data().text}</div>
