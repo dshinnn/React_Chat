@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirebaseConfig } from "./firebase-config.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
-import { getFirestore, collection, addDoc, serverTimestamp, query, onSnapshot, orderBy, limit } from "firebase/firestore"
+import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { Route, Routes, useNavigate } from 'react-router-dom';
-import Navbar from "./components/Navbar";
 import Login from './views/Login';
 import Home from './views/Home';
 

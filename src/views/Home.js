@@ -10,9 +10,6 @@ export default function Home(props) {
     const db = getFirestore();
     const messagesRef = collection(db, 'messages');
     
-    function getFocus(messageId) {
-        document.getElementById('editText').focus();
-    }
     /*
         params: messageId, option
         description: hides current message and display an input field to edit the current message
@@ -159,7 +156,6 @@ export default function Home(props) {
                                         if(e.key === 'Enter') {
                                             e.preventDefault();
                                             props.saveMessage(e.target.value);
-                                            console.log(e.target.value);
                                             e.target.value = null;
                                         }
                                     }}/>
