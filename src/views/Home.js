@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, collection, query, onSnapshot, orderBy, doc, deleteDoc, updateDoc } from "firebase/firestore"
 
@@ -7,32 +7,42 @@ export default function Home(props) {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const scroll = useRef();
-    const oldMessage = useRef();
-    const inputField = useRef();
     const db = getFirestore();
     const messagesRef = collection(db, 'messages');
     
-    function editSettings(option) {
-
-        if (option === 'show') {
-            oldMessage.current.style.display = 'none';
-            inputField.current.style.display = 'contents';
-        } else if (option === 'hide') {
-            oldMessage.current.style.display = 'contents';
-            inputField.current.style.display = 'none';
+    /*
+        params: messageId, option
+        description: hides current message and display an input field to edit the current message
+    */
+    function editSettings(messageId, option) {
+        console.log('editSettings: ' + messageId);
+        let oldMsg = document.getElementById(messageId + '_oldText');
+        console.log('editSettings: oldMsg text - ' + oldMsg.innerText);
+        let editMsg = document.getElementById(messageId);
+        if (option === 'edit') { 
+            oldMsg.style.display = 'none';
+            editMsg.style.display = 'contents';
         }
+        else {
+            oldMsg.style.display = 'contents';
+            editMsg.style.display = 'none';
+        }     
     }
 
-    async function updateMessage(messageId, text) {
-        console.log('updateMessage ran');
-        const msgDoc = doc(db, 'messages', messageId);
+    /* 
+        params: messageId, newText
+        description: updates the old message with the new message in the database once the enter key is pressed
+    */
+    async function updateMessage(messageId, newText) {
+        console.log('updateMessage: messageId - ' + messageId + " text: " + newText);
+        let msgDoc = doc(db, 'messages', messageId)
         await updateDoc(msgDoc, {
-            text: text
+            text: newText
         });
     }
 
+    //  Deletes message by messageId in database
     async function deleteMessage(messageId) {
-        console.log(messageId);
         await deleteDoc(doc(db, 'messages', messageId));
     }
 
@@ -68,6 +78,7 @@ export default function Home(props) {
     }
 
     return (
+        //  Header for the chat app
         <div className='vh-100'> 
             <div className="card vh-100 w-100 scrollbar">
                 <div className='d-flex justify-content-center mb-3'>
@@ -79,18 +90,25 @@ export default function Home(props) {
                     </div>
                     
                 </div>
-            
+
+                {/* chat box container */}
                 <div className="card-body">
+                    {/* container that contains all the individual message containers */}
                     <div className="messages p-2 ms-2">
                         { messages.map((msg) => 
+                            // Individual message containers
                             <div className='message-container p-2 mb-1' key={msg.id}>
                                 <div className='d-flex align-items-center'>
-                                    <img src={msg.data().profilePicUrl} className='profilePic rounded-circle'></img>
+                                    {/* Displays profile images linked with the users' Google account */}
+                                    <img src={msg.data().profilePicUrl} className='profilePic rounded-circle'></img>  
                                     <div className='message ms-2'>
+                                        {/* Displays sender's name */}
                                         {msg.data().name} 
+                                            {/* Display the date the message was sent  */}
                                             <span className='date fst-italic ms-2'>
                                                 {msg.data().timestamp ? msg.data().timestamp.toDate().toDateString() : Date.now()}
-                                            </span>                                           
+                                            </span>
+                                            {/* Displays edit and delete settings for messages sent by the current user */}
                                             { props.user === msg.data().user ? (
                                                 <div className='me-5 position-absolute end-0 translate-middle-y'>
                                                     <div className="dropdown">
@@ -98,7 +116,9 @@ export default function Home(props) {
                                                             ...
                                                         </button>
                                                         <ul className="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
-                                                            <li><button className='dropdown-item' type='button' onClick={() => { editSettings('show') } }>Edit</button></li>
+                                                            {/* Calls editSettings function when 'edit' is selected */}
+                                                            <li><button className='dropdown-item' type='button' onClick={() => { editSettings(msg.id, 'edit') } }>Edit</button></li>
+                                                            {/*  Calls deleteMessage function when 'delete' is selected */}
                                                             <li><button className='dropdown-item' type='button' onClick={() => { deleteMessage(msg.id) } }>Delete</button> </li>
                                                         </ul>
                                                         </div>
@@ -107,25 +127,27 @@ export default function Home(props) {
                                                 </div>
                                                 ) : null
                                             }
-                                            <div ref={oldMessage} className='text'>{msg.data().text}</div>
+                                            {/* Displays most updated message sent by the user */}
+                                            <div id={msg.id + '_oldText'} style={{display: 'contents'}}><br></br>{msg.data().text}</div>
+                                            {/* Creates an input field for editing messages but hidden until 'edit' is selected */}
+                                            <div id={msg.id} style={{display: 'none'}}>
+                                                <br></br>
+
+                                                {/* Input field for editing the message and onKeyDown execution depending on if the user edited the message or not */}
+                                                <input type='text' className='text' defaultValue={msg.data().text} onKeyDown={(e) => {
+                                                    if(e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        updateMessage(msg.id, e.target.value);
+                                                        editSettings(msg.id, null);
+                                                    } else if (e.key === 'Escape'){ 
+                                                        e.preventDefault();
+                                                        editSettings(msg.id, null);
+                                                    }
+                                                }
+                                                }/>
+                                                <p className='text-muted fst-italic text'>press esc to cancel</p>
+                                            </div>
                                         </div>
-                                </div>
-                                
-                                <div ref={inputField} style={{display: 'none'}}>
-                                    <input type='text' className='text ms-5 ps-1' defaultValue={msg.data().text} onKeyDown={(e) => {
-                                            if(e.key === 'Enter') {
-                                                e.preventDefault();
-                                                console.log(e.target.value);
-                                                updateMessage(msg.id, e.target.value);
-                                                editSettings('hide')
-                                                e.target.value = null;
-                                            } else if (e.key === 'Escape'){ 
-                                                e.preventDefault();
-                                                editSettings('hide')
-                                            }
-                                        }
-                                    }/>
-                                    <p className='text-muted fst-italic text ms-5 ps-1'>press esc to cancel</p>
                                 </div>
                             </div>
                         )}

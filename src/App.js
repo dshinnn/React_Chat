@@ -8,7 +8,6 @@ import Navbar from "./components/Navbar";
 import Login from './views/Login';
 import Home from './views/Home';
 
-// TODO: Try using https://blog.logrocket.com/how-to-use-react-hooks-firebase-firestore/ to get loadMessages and displayMessages working
 export default function App (){
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
