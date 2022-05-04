@@ -56,23 +56,12 @@ code {
   scrollbar-color: #23272a #2c2f33;
 }
 
-.card-body{
-  margin-bottom: 3%;
-}
-
 #root {
   background-color: #23272a;
 }
 
 .msg-txt {
   background-color: #494d53;
+  padding-left: 200px;
 }
 
-.text-div {
-  width: 75%;
-  left: 11%;
-}
-
-/* .text {
-  margin-left: 55px;
-} */

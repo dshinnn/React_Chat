@@ -10,18 +10,21 @@ export default function Home(props) {
     const db = getFirestore();
     const messagesRef = collection(db, 'messages');
     
+    function getFocus(messageId) {
+        document.getElementById('editText').focus();
+    }
     /*
         params: messageId, option
         description: hides current message and display an input field to edit the current message
     */
     function editSettings(messageId, option) {
-        console.log('editSettings: ' + messageId);
         let oldMsg = document.getElementById(messageId + '_oldText');
-        console.log('editSettings: oldMsg text - ' + oldMsg.innerText);
         let editMsg = document.getElementById(messageId);
         if (option === 'edit') { 
             oldMsg.style.display = 'none';
             editMsg.style.display = 'contents';
+            // Focuses on 'edit message' input field after it is shown
+            document.getElementById(messageId + '_input').focus();
         }
         else {
             oldMsg.style.display = 'contents';
@@ -34,7 +37,6 @@ export default function Home(props) {
         description: updates the old message with the new message in the database once the enter key is pressed
     */
     async function updateMessage(messageId, newText) {
-        console.log('updateMessage: messageId - ' + messageId + " text: " + newText);
         let msgDoc = doc(db, 'messages', messageId)
         await updateDoc(msgDoc, {
             text: newText
@@ -54,7 +56,7 @@ export default function Home(props) {
         }
         
         function loadMessages() {
-            // Queries the firestore database for the last 12 messages saved
+            // Queries the firestore database for all the messages and display by oldest to newest message
             const recentMessageQuery = query(messagesRef, orderBy('timestamp', 'asc'));
             setLoading(true);
             
@@ -134,7 +136,7 @@ export default function Home(props) {
                                                 <br></br>
 
                                                 {/* Input field for editing the message and onKeyDown execution depending on if the user edited the message or not */}
-                                                <input type='text' className='text' defaultValue={msg.data().text} onKeyDown={(e) => {
+                                                <input type='text' id={msg.id + '_input'} defaultValue={msg.data().text} onKeyDown={(e) => {
                                                     if(e.key === 'Enter') {
                                                         e.preventDefault();
                                                         updateMessage(msg.id, e.target.value);
@@ -151,8 +153,8 @@ export default function Home(props) {
                                 </div>
                             </div>
                         )}
-                            <div className='text-div position-fixed bottom-0 translate-middle-y'>
-                                <input type='text' className='msg-txt h-100 w-100 border border-secondary rounded-pill text-white p-2' name='message' placeholder="     Message" 
+                            <div className='text-div bottom-0'>
+                                <input type='text' autoFocus className='msg-txt h-100 w-100 border border-secondary rounded-pill text-white p-2 ps-3' name='message' placeholder="Message" 
                                     onKeyPress={(e) => {
                                         if(e.key === 'Enter') {
                                             e.preventDefault();
